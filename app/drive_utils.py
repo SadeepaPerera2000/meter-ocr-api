@@ -2,19 +2,14 @@
 
 import io
 import os
+import json
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from dotenv import load_dotenv
 
-# Load environment variables from .env
+# Load environment variables from .env (for local dev)
 load_dotenv()
-
-# Use env variable or fallback to default path
-SERVICE_ACCOUNT_FILE = os.getenv(
-    'GOOGLE_SERVICE_ACCOUNT_FILE',
-    os.path.join(os.path.dirname(__file__), '..', 'service_account_key.json')
-)
 
 # Google Drive folder MIME type
 FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
@@ -24,8 +19,10 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 
 def get_drive_service():
     """Initializes and returns Google Drive API service."""
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    # Load credentials from environment variable
+    credentials_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+    creds = service_account.Credentials.from_service_account_info(
+        credentials_info, scopes=SCOPES
     )
     return build('drive', 'v3', credentials=creds)
 
