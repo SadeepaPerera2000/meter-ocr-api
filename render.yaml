@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: meter-reader-api
+    env: python
+    repo: https://github.com/SadeepaPerera2000/meter-ocr-api
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: LOCAL_IMAGE_DIR
+        sync: false
