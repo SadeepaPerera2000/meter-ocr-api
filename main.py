@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware  # <-- Import CORS middleware
 import os
 import logging
 import json
@@ -22,6 +23,15 @@ if save_dir:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 app = FastAPI()
+
+# === CORS Setup: Allow all origins ===
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow requests from any origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc)
+    allow_headers=["*"],  # Allow all headers
+)
 
 
 @app.get("/")
