@@ -137,6 +137,27 @@ def extract_batch_meter_readings():
 @app.get("/ocr/ui-data")
 def get_ui_data():
     save_dir = os.getenv("LOCAL_IMAGE_DIR")
+    TEST_FOLDER_ID = "1cu29xrTse-wm79_xHK6ApqyZVn_DPa7K"
+
+    # Step 1: Download images from Google Drive
+    try:
+        logging.info("Listing files in Google Drive folder for /ocr/ui-data...")
+        files = list_files_in_folder(TEST_FOLDER_ID)
+
+        if not files:
+            logging.warning("No files found in the Drive folder.")
+            raise HTTPException(status_code=404, detail="No files found in the Drive folder.")
+
+        os.makedirs(save_dir, exist_ok=True)
+        for file in files:
+            logging.info(f"Downloading file: {file['name']}")
+            download_file(file['id'], file['name'], save_dir)
+
+    except Exception as e:
+        logging.error(f"Error while downloading images: {e}")
+        raise HTTPException(status_code=500, detail="Failed to download images from Google Drive.")
+
+    # Step 2: Read local images
     if not save_dir or not os.path.exists(save_dir):
         raise HTTPException(status_code=500, detail="Local image directory is not set or does not exist.")
 
@@ -146,6 +167,7 @@ def get_ui_data():
     if not image_files:
         raise HTTPException(status_code=404, detail="No images found in local directory.")
 
+    # Dummy metadata for UI
     fixed_time = "2025-07-24 00:00:00"
     previous_status = ["OK", "Failed"]
 
@@ -157,14 +179,11 @@ def get_ui_data():
         if not os.path.exists(image_path):
             continue
 
-        # ⏱️ Sleep to respect rate limits
-        time.sleep(8)
+        time.sleep(8)  # ⏱️ Respect Gemini rate limits
 
-        # Extract reading
         reading = extract_meter_reading(image_path)
         status = "OK" if reading and reading != "Unreadable" else "Failed"
 
-        # Convert image to base64
         with open(image_path, "rb") as image_file_data:
             encoded_image = base64.b64encode(image_file_data.read()).decode("utf-8")
 
